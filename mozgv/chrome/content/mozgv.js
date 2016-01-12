@@ -309,5 +309,22 @@ Mozgv.prototype.onUnLoad = function()
 	this.settingsService.savePrefFile(this.settingsFile);
 	}
 
+Mozgv.prototype.doMenuSaveSVG = function() {
+	var nsIFilePicker = Components.interfaces.nsIFilePicker;
+	var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+	fp.init(window, "Select a File", nsIFilePicker.modeSave);
+	fp.appendFilter("SVG Files (*.svg)","*.svg");
+	fp.appendFilter("All Files" ,"*.*");
+	var rv = fp.show();
+	if ( rv == nsIFilePicker.returnCancel) return;
+	var svgRoot= document.getElementById("drawingArea");
+	var oFOStream = Components.classes["@mozilla.org/network/file-output-stream;1"].
+		createInstance(Components.interfaces.nsIFileOutputStream);
+	var oFile = fp.file;
+	oFOStream.init(oFile, 0x02 | 0x08 | 0x20, 0x664, 0); // write, create, truncate
+	(new XMLSerializer()).serializeToStream(svgRoot, oFOStream, "UTF-8"); // rememeber, doc is the DOM tree
+	oFOStream.close();
+	}
+
 var mozgv = new Mozgv();
 

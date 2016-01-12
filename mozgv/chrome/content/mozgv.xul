@@ -30,6 +30,7 @@
     <menu id="file-menu" label="File">
       <menupopup>
         <menuitem label="Open BAM..." oncommand="mozgv.doMenuOpen();"/>
+        <menuitem label="Save SVG..." oncommand="mozgv.doMenuSaveSVG();"/>
         <menuseparator/>
         <menuitem label="Close" oncommand="window.close();"/>
       </menupopup>
