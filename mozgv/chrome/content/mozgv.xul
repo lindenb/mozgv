@@ -11,8 +11,8 @@
 	centerscreen="true"
 	dependent="true"
 	title="Mozilla Genome Viewer"
-	onload="onLoad()"
-	onunload="onUnLoad()"
+	onload="mozgv.onLoad()"
+	onunload="mozgv.onUnLoad()"
 	>
   <script src="chrome://mozgv/content/mozgv.js"/>
   
@@ -29,7 +29,7 @@
   <menubar id="sample-menubar">
     <menu id="file-menu" label="File">
       <menupopup>
-        <menuitem label="Open BAM..." oncommand="doMenuOpen();"/>
+        <menuitem label="Open BAM..." oncommand="mozgv.doMenuOpen();"/>
         <menuseparator/>
         <menuitem label="Close" oncommand="window.close();"/>
       </menupopup>
@@ -41,12 +41,12 @@
 <hbox flex="1">
 	<label control="bampath" value="BAM:" tooltiptext="bam" flex="1"/>
 	<textbox id="bampath" flex="5"  tooltiptext="Bam path" emptytext="path"/>
-	<button tooltiptext="set path" label="BAM..." oncommand="selectBamFile();"/>
+	<button tooltiptext="set path" label="BAM..." oncommand="mozgv.selectBamFile();"/>
 </hbox>
 <hbox flex="1">
 	<label control="refpath" value="REF: " tooltiptext="ref" flex="1"/>
 	<textbox id="refpath" flex="5"  tooltiptext="REF path" emptytext="path"/>
-	<button tooltiptext="set path" label="REF..." oncommand="selectReferenceFile();" preference="pref_ref"/>
+	<button tooltiptext="set path" label="REF..." oncommand="mozgv.selectReferenceFile();" />
 </hbox>
 <hbox flex="1">
 	<checkbox checked="true" label="clip" tooltiptext="Show Clip" flex="1"/>
@@ -59,15 +59,15 @@
     </button>
 </hbox>
 <hbox flex="1">
-<button oncommand="moveView(-1,0.95);" tooltiptext="move 95% left" label="&#x21DA;"/>
-<button oncommand="moveView(-1,0.475);" tooltiptext="move 47% left" label="&#x21D0;"/>
-<button oncommand="moveView(-1,0.1);" tooltiptext="move 10% left" label="&#x2190;"/>
+<button oncommand="mozgv.moveView(-1,0.95);" tooltiptext="move 95% left" label="&#x21DA;"/>
+<button oncommand="mozgv.moveView(-1,0.475);" tooltiptext="move 47% left" label="&#x21D0;"/>
+<button oncommand="mozgv.moveView(-1,0.1);" tooltiptext="move 10% left" label="&#x2190;"/>
 <label control="interval" value="Position" tooltiptext="chrom:pos"/>
 <textbox id="interval" cols="12"  tooltiptext="position or start-end or gene name or gene proteinID" emptytext="chr:start-end" value="RF01:21"/>
-<button oncommand="repaintSVGBam()">Go</button>
-<button oncommand="moveView(1,0.1);" tooltiptext="move 10% right" label="&#x2192;"/>
-<button oncommand="moveView(1,0.475);" tooltiptext="move 47% right" label="&#x21D2;"/>
-<button oncommand="moveView(1,0.95);" tooltiptext="move 95% right" label="&#x21DB;"/>
+<button oncommand="mozgv.repaintSVGBam()" label="Go"/>
+<button oncommand="mozgv.moveView(1,0.1);" tooltiptext="move 10% right" label="&#x2192;"/>
+<button oncommand="mozgv.moveView(1,0.475);" tooltiptext="move 47% right" label="&#x21D2;"/>
+<button oncommand="mozgv.moveView(1,0.95);" tooltiptext="move 95% right" label="&#x21DB;"/>
 </hbox>
 
 <scrollbox style='overflow:auto;'  flex="1" pack="center">

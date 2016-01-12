@@ -10,44 +10,26 @@ var console= {
 		}
 	};
 
-function parsePosition()
+function Mozgv() {
+  this.preferences = null;
+  this.settingsFile =null;
+  }
+	
+	
+Mozgv.prototype.parsePosition = function()
 	{
 	var s =  document.getElementById("interval").value;
-	var colon=s.indexOf(':');
-	if(colon<1)
-		{
-		console.log("bad colon "+s);
-		return null;
-		}
-	var chrom = s.substr(0,colon);
-	var start = 0;
-	var end = 0;
-	s = s.substr(colon+1);
-	var hyphen= s.indexOf('-');
-	if( hyphen == -1 )
-		{
-		start = parseInt(s.replace(/[,]/g, '') );
-		end = start;
-		console.log("start "+start+" "+end);
-		}
-	else
-		{
-		start = parseInt( s.substr(0,hyphen).replace(/[,]/g, '') );
-		end = parseInt( s.substr(hyphen+1).replace(/[,]/g, '') );
-		}
-	
-	if(chrom.length==0 || isNaN(start) || start <0  || isNaN(end) || end < start)
-		{
-		console.log("bad "+ret.chrom+"/"+ start);
-		return null;
-		}
-	if(start+100<end) end=start+100;
-	return new Interval(chrom,start,end);
+	var interval = Interval.parse(s);
+	if(interval == null) return null;
+	if(interval.distance()>100) {
+	    return new Interval(interval.getContig(),interval.getStart(),interval.getStart()+100);
+	    }
+	return interval;
 	}
 
-function moveView(side,percent)
+Mozgv.prototype.moveView = function(side,percent)
 	{
-	var interval = parsePosition();
+	var interval = this.parsePosition();
 	if( interval == null) return;
 	var viewLength= interval.distance();
 	console.log("x1"+interval+"/"+interval.distance());
@@ -66,15 +48,15 @@ function moveView(side,percent)
 		}
 	interval  = new Interval( interval.getContig(), newStart, newStart + (viewLength-1));
 	document.getElementById("interval").value = interval.toString();
-	repaintSVGBam();
+	this.repaintSVGBam();
 	}
 
-function getSamtoolsPath()
+Mozgv.prototype.getSamtoolsPath = function()
 	{
-	return "/home/lindenb/package/samtools-0.1.19/samtools";
+	return "/home/lindenb/src/samtools/samtools";
 	}
 
-function paintError(err)
+Mozgv.prototype.paintError = function(err)
 	{
 	var svg= document.getElementById("drawingArea");
 	while ( svg.hasChildNodes()) svg.removeChild(svg.firstChild);
@@ -85,17 +67,18 @@ function paintError(err)
 	message.setAttribute("style","stroke:red;fill:none;font-size:12;");
 	}
 
-function addMouseClick(gRead,samRecord)
+Mozgv.prototype.addMouseClick = function(gRead,samRecord)
 	{
 	gRead.addEventListener("click",function(){
 		alert(samRecord.getReadName())
 		});
 	}
 
-function repaintSVGBam()
+Mozgv.prototype.repaintSVGBam = function()
 	{
+	var that = this;
 	var bamExeFile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces["nsILocalFile"]);
-	bamExeFile.initWithPath( getSamtoolsPath() );
+	bamExeFile.initWithPath( this.getSamtoolsPath() );
 	if (!bamExeFile.exists()) {
 		alert("file "+file+" doesn't exists");
         return;
@@ -118,7 +101,9 @@ function repaintSVGBam()
 						return;
 					  }
 
-					  var samfileStr = NetUtil.readInputStreamToString(inputStream, inputStream.available());
+					  var samfileStr;
+					  try { samfileStr = NetUtil.readInputStreamToString(inputStream, inputStream.available()); }
+					  catch(error) { console.log(error); return;}
 					  var reads=[];
 					  var lines = samfileStr.split(/\n/);
 						for(var i in lines) {
@@ -128,12 +113,12 @@ function repaintSVGBam()
 						}
 						samfileStr=null;
 						var viewer = new  SVGBrowser();
-						viewer.createReadGroupCallBack = addMouseClick;
+						viewer.createReadGroupCallBack = that.addMouseClick;
 						var svgRoot= document.getElementById("drawingArea");
 						while ( svgRoot.hasChildNodes()) svgRoot.removeChild(svgRoot.firstChild);
 						viewer.build(
 							svgRoot,
-							new Interval("chr1",3237,3247),
+							new Interval("rotavirus",237,247),
 							reads,
 							null);
 					  tmpOutFile.remove(false);
@@ -141,25 +126,25 @@ function repaintSVGBam()
 					
 					break;
                 case "process-failed":
-                	paintError("Process failed "+tmpOutFile.path); 
+                	this.paintError("Process failed "+tmpOutFile.path); 
                 	tmpOutFile.remove(false);
                 	break;
             }
         }
     };
     
-    var args=["view","-F","4","-o",tmpOutFile.path,"/home/lindenb/tmp/DATASANGER/sorted_.bam","chr1:3237-3247"];
+    var args=["view","-F","4","-o",tmpOutFile.path,"/home/lindenb/src/gatk-ui/testdata/S1.bam","rotavirus:37-47"];
      process.runAsync(args, args.length,observeHandler,false);
 	}
 
 
 
 	
-function selectReferenceFile() {
+Mozgv.prototype.selectReferenceFile=function() {
 	var nsIFilePicker = Components.interfaces.nsIFilePicker;
 	var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(
 nsIFilePicker);
-	fp.appendFilter("Fasta Files (*.fa, *.fasta)","*.fa; *.fasta");
+	fp.appendFilter("Fasta Files (*.fa, *.fasta)","*.fa; *.fasta","*.fa.gz","*.fasta.gz");
 	fp.appendFilter("All Files" ,"*.*");
 	fp.init(window, "Select a Reference File.", nsIFilePicker.modeOpen);
 	var res = fp.show();
@@ -171,11 +156,11 @@ nsIFilePicker);
                 .getService(Components.interfaces.nsIPrefService).getDefaultBranch(null);
         prefs.setCharPref("mozgv.reference.path",fp.file.path); 
 		
-		repaintSVGBam();
+		this.repaintSVGBam();
 		}
 	}
 
-function selectBamFile() {
+Mozgv.prototype.selectBamFile = function() {
 	var nsIFilePicker = Components.interfaces.nsIFilePicker;
 	var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(
 nsIFilePicker);
@@ -185,11 +170,11 @@ nsIFilePicker);
 	var res = fp.show();
 	if (res != nsIFilePicker.returnCancel){
 		document.getElementById('bampath').value = fp.file.path;
-		repaintSVGBam();
+		this.repaintSVGBam();
 		}
 	}
 
-function doMenuOpen() {
+Mozgv.prototype.doMenuOpen = function() {
 	var nsIFilePicker = Components.interfaces.nsIFilePicker;
 	var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(
 nsIFilePicker);
@@ -214,7 +199,26 @@ nsIFilePicker);
 	}
 
 
-function onLoad() {
+Mozgv.prototype.onLoad = function() {
+  
+    this.settingsService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
+
+      	var directoryService = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties);
+	var settingsDirectory = directoryService.get("PrefD", Components.interfaces.nsIFile);
+	this.settingsFile = Components.classes["@mozilla.org/file/local;1"].createInstance();
+	this.settingsFile.QueryInterface(Components.interfaces.nsILocalFile);
+	this.settingsFile.initWithPath(settingsDirectory.path);
+	this.settingsFile.appendRelativePath("prefs-mozgv.js");
+  
+	
+		/* Read the file */
+	try {
+	    this.settingsService.readUserPrefs(this.settingsFile);
+	} catch (exception) {
+	    /* Do nothing, the file will be create in the future */
+		console.log(exception);
+	}
+  
 	var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                 .getService(Components.interfaces.nsIPrefService).getDefaultBranch(null);
 
@@ -231,17 +235,14 @@ function onLoad() {
  			{
  			document.getElementById('bampath').value = args.bam;
  			}
- 		repaintSVGBam();
+ 		this.repaintSVGBam();
  		}
 	}
 
 
-function onUnLoad()
+Mozgv.prototype.onUnLoad = function()
 	{
-	console.log("saving prefs");
-	 var prefService =  Components.classes["@mozilla.org/preferences-service;1"].
-	 	getService(Components.interfaces.nsIPrefService);
-	prefService.savePrefFile(null); 
+	this.settingsService.savePrefFile(this.settingsFile);
 	}
 
-
+var mozgv = new Mozgv();
