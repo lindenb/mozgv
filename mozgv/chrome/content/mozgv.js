@@ -85,6 +85,13 @@ function paintError(err)
 	message.setAttribute("style","stroke:red;fill:none;font-size:12;");
 	}
 
+function addMouseClick(gRead,samRecord)
+	{
+	gRead.addEventListener("click",function(){
+		alert(samRecord.getReadName())
+		});
+	}
+
 function repaintSVGBam()
 	{
 	var bamExeFile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces["nsILocalFile"]);
@@ -121,6 +128,7 @@ function repaintSVGBam()
 						}
 						samfileStr=null;
 						var viewer = new  SVGBrowser();
+						viewer.createReadGroupCallBack = addMouseClick;
 						var svgRoot= document.getElementById("drawingArea");
 						while ( svgRoot.hasChildNodes()) svgRoot.removeChild(svgRoot.firstChild);
 						viewer.build(
@@ -143,6 +151,9 @@ function repaintSVGBam()
     var args=["view","-F","4","-o",tmpOutFile.path,"/home/lindenb/tmp/DATASANGER/sorted_.bam","chr1:3237-3247"];
      process.runAsync(args, args.length,observeHandler,false);
 	}
+
+
+
 	
 function selectReferenceFile() {
 	var nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -170,5 +181,51 @@ nsIFilePicker);
 		document.getElementById('bampath').value = fp.file.path;
 		repaintSVGBam();
 		}
+	}
+
+function doMenuOpen() {
+	var nsIFilePicker = Components.interfaces.nsIFilePicker;
+	var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(
+nsIFilePicker);
+	fp.appendFilter("BAM Files (*.bam, *.cram)","*.bam; *.cram");
+	fp.appendFilter("All Files" ,"*.*");
+	fp.init(window, "Select a BAM File.", nsIFilePicker.modeOpen);
+	var res = fp.show();
+	if (res != nsIFilePicker.returnCancel){
+		var winargs={
+			bam: fp.file.path
+			};
+		var watcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                            .getService(Components.interfaces.nsIWindowWatcher);
+		watcher.openWindow(
+			window,
+			"chrome://mozgv/content/mozgv.xul",
+			fp.file.leafName,
+			"width=600,height=300",
+			winargs
+			);
+		}
+	}
+
+function doMenuShowPreferences() {
+	window.openDialog(
+		"chrome://mozgv/content/prefs.xul",
+		"Preferences",
+		"chrome,titlebar,toolbar,centerscreen,modal"
+		);
+	}
+
+
+function onLoad() {
+
+ 	if( "arguments" in window && window.arguments.length >0)
+ 		{
+ 		var args = window.arguments[0];
+ 		if( "bampath" in args )
+ 			{
+ 			document.getElementById('bampath').value = args.bam;
+ 			}
+ 		repaintSVGBam();
+ 		}
 	}
 

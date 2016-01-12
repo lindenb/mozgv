@@ -2,5 +2,5 @@
 
 
 test: all
-	firefox -app mozgv/application.ini -jsconsole -purgecaches
+	firefox -app mozgv/application.ini #-jsconsole -purgecaches
 all:

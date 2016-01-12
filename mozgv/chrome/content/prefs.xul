@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<prefwindow
+	title="Mozgv Preferences"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <prefpane id="myOptions" label="Mozgv Preferences">
+        <preferences>
+            <preference id="pref_ref" name="mozgv.reference.path" type="string"/>
+        </preferences>
+        <hbox>
+        	<label contole="refid" value="Reference Path:" flex="1"/>
+	        <textbox label="Default References:" id="refid" preference="pref_ref" flex="5"/>
+        </hbox>
+    </prefpane>
+</prefwindow>
