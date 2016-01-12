@@ -1,0 +1,3 @@
+[submodule "bamjs"]
+	path = bamjs
+	url = https://github.com/lindenb/bamjs.git
