@@ -165,6 +165,12 @@ nsIFilePicker);
 	var res = fp.show();
 	if (res != nsIFilePicker.returnCancel){
 		document.getElementById('refpath').value = fp.file.path;
+		
+		/* save prefs */
+		var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                .getService(Components.interfaces.nsIPrefService).getDefaultBranch(null);
+        prefs.setCharPref("mozgv.reference.path",fp.file.path); 
+		
 		repaintSVGBam();
 		}
 	}
@@ -207,17 +213,17 @@ nsIFilePicker);
 		}
 	}
 
-function doMenuShowPreferences() {
-	window.openDialog(
-		"chrome://mozgv/content/prefs.xul",
-		"Preferences",
-		"chrome,titlebar,toolbar,centerscreen,modal"
-		);
-	}
-
 
 function onLoad() {
+	var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                .getService(Components.interfaces.nsIPrefService).getDefaultBranch(null);
 
+    if( prefs.prefHasUserValue("mozgv.reference.path") )
+    	{
+		var value = prefs.getCharPref("mozgv.reference.path"); 
+		document.getElementById('refpath').value = ""+value;
+		}
+		
  	if( "arguments" in window && window.arguments.length >0)
  		{
  		var args = window.arguments[0];
@@ -228,4 +234,14 @@ function onLoad() {
  		repaintSVGBam();
  		}
 	}
+
+
+function onUnLoad()
+	{
+	console.log("saving prefs");
+	 var prefService =  Components.classes["@mozilla.org/preferences-service;1"].
+	 	getService(Components.interfaces.nsIPrefService);
+	prefService.savePrefFile(null); 
+	}
+
 

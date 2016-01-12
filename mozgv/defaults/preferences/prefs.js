@@ -11,3 +11,5 @@ pref("nglayout.debug.disable_xul_cache", true);
 pref("nglayout.debug.disable_xul_fastload", true);
 
 
+
+pref("mozgv.reference.path","tatayoyo");

@@ -12,6 +12,7 @@
 	dependent="true"
 	title="Mozilla Genome Viewer"
 	onload="onLoad()"
+	onunload="onUnLoad()"
 	>
   <script src="chrome://mozgv/content/mozgv.js"/>
   
@@ -29,8 +30,6 @@
     <menu id="file-menu" label="File">
       <menupopup>
         <menuitem label="Open BAM..." oncommand="doMenuOpen();"/>
-        <menuseparator/>
-        <menuitem label="Preferences..." oncommand="doMenuShowPreferences();"/>
         <menuseparator/>
         <menuitem label="Close" oncommand="window.close();"/>
       </menupopup>
