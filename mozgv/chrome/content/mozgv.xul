@@ -81,6 +81,6 @@
 <statusbar>
 	<statusbarpanel label="Pierre Lindenbaum" tooltiptext="ref"/>
 	<spacer flex="1"/>
-	<statusbarpanel label="Right panel"/>
+	<statusbarpanel id="messages.panel" label=""/>
 </statusbar>
 </window>

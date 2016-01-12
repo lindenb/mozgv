@@ -7,5 +7,6 @@ XUL/Mozilla genome viewer
 git clone  https://github.com/lindenb/mozgv.git
 cd mozgv
 git submodule update --init --recursive
+git checkout master
 ```
 

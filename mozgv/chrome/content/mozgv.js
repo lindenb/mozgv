@@ -13,15 +13,16 @@ var console= {
 function Mozgv() {
   this.preferences = null;
   this.settingsFile =null;
+  this.prefBanch = null;
   }
 	
 	
-Mozgv.prototype.parsePosition = function()
+Mozgv.prototype.parseInterval = function()
 	{
 	var s =  document.getElementById("interval").value;
 	var interval = Interval.parse(s);
 	if(interval == null) return null;
-	if(interval.distance()>100) {
+	if(interval.distance() > 100) {
 	    return new Interval(interval.getContig(),interval.getStart(),interval.getStart()+100);
 	    }
 	return interval;
@@ -53,18 +54,34 @@ Mozgv.prototype.moveView = function(side,percent)
 
 Mozgv.prototype.getSamtoolsPath = function()
 	{
-	return "/home/lindenb/src/samtools/samtools";
+	var path = this.prefBanch.getCharPref("mozgv.samtools.path");
+	if(path!=null) path=path.trim();
+	if(path==null || path.length==0) return "samtools"; 
+	return path;
 	}
 
-Mozgv.prototype.paintError = function(err)
+
+Mozgv.prototype.log = function(color,message)
 	{
-	var svg= document.getElementById("drawingArea");
-	while ( svg.hasChildNodes()) svg.removeChild(svg.firstChild);
-	var message = SVG.createText(0,12,""+err);
-	svg.setAttribute("width","100");
-	svg.setAttribute("height","100");
-	svg.appendChild(message);
-	message.setAttribute("style","stroke:red;fill:none;font-size:12;");
+	var pane=document.getElementById("messages.panel");
+	pane.setAttribute("style","color:"+color+";");
+	pane.label=""+message;
+	pane.setAttribute("tooltiptext",pane.label);
+	}
+
+Mozgv.prototype.logError = function(message)
+	{
+	this.log("red",message);
+	}
+
+Mozgv.prototype.logWarning = function(message)
+	{
+	this.log("orange",message);
+	}
+
+Mozgv.prototype.logInfo = function(message)
+	{
+	this.log("green",message);
 	}
 
 Mozgv.prototype.addMouseClick = function(gRead,samRecord)
@@ -77,18 +94,45 @@ Mozgv.prototype.addMouseClick = function(gRead,samRecord)
 Mozgv.prototype.repaintSVGBam = function()
 	{
 	var that = this;
-	var bamExeFile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces["nsILocalFile"]);
-	bamExeFile.initWithPath( this.getSamtoolsPath() );
-	if (!bamExeFile.exists()) {
-		alert("file "+file+" doesn't exists");
+	var samtoolsExe = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces["nsILocalFile"]);
+	try {
+	samtoolsExe.initWithPath( this.getSamtoolsPath() );
+	} catch(error) {
+	this.logError("samtools executable "+ this.getSamtoolsPath()  +" doesn't exists");
+        return;
+	}
+	if (!samtoolsExe.exists()) {
+		this.logError("samtools executable "+ samtoolsExe.path +" doesn't exists");
         return;
 		}
 	
+	/** get BAM path */
+	var bamFilePath = document.getElementById('bampath').value;
+	if(bamFilePath.trim().length==0) {
+		this.logError("BAM is not defined");
+        return;
+		}
+	var bamIFile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces["nsILocalFile"]);
+	bamIFile.initWithPath( bamFilePath );
+	if (!bamIFile.exists()) {
+		this.logError("file "+ bamIFile.path +" doesn't exists");
+        return;
+		}
+		
+	var interval = this.parseInterval();
+	if( interval == null) {
+		this.logError("Bad Interval.");
+        return;
+		}
+	this.prefBanch.setCharPref("mozgv.lastRegionStr",interval.toString());
+	
+	
+	/** create tmp directory */
 	var tmpOutFile = FileUtils.getFile("TmpD", ["sam.tmp"]);	
 	tmpOutFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
 	
 	var process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
-    process.init(bamExeFile);
+    process.init(samtoolsExe);
     
     
     var observeHandler = {
@@ -103,7 +147,11 @@ Mozgv.prototype.repaintSVGBam = function()
 
 					  var samfileStr;
 					  try { samfileStr = NetUtil.readInputStreamToString(inputStream, inputStream.available()); }
-					  catch(error) { console.log(error); return;}
+					  catch(error) {
+					  	 that.logError(error);
+					  	 tmpOutFile.remove(false);
+					  	 return;
+					  	 }
 					  var reads=[];
 					  var lines = samfileStr.split(/\n/);
 						for(var i in lines) {
@@ -118,22 +166,27 @@ Mozgv.prototype.repaintSVGBam = function()
 						while ( svgRoot.hasChildNodes()) svgRoot.removeChild(svgRoot.firstChild);
 						viewer.build(
 							svgRoot,
-							new Interval("rotavirus",237,247),
+							interval,
 							reads,
 							null);
 					  tmpOutFile.remove(false);
+					  that.logInfo("Done"); 
 					});
 					
 					break;
                 case "process-failed":
-                	this.paintError("Process failed "+tmpOutFile.path); 
+                	that.logError("Process failed "+tmpOutFile.path); 
                 	tmpOutFile.remove(false);
                 	break;
             }
         }
     };
     
-    var args=["view","-F","4","-o",tmpOutFile.path,"/home/lindenb/src/gatk-ui/testdata/S1.bam","rotavirus:37-47"];
+    var args=["view","-F","4",
+    	"-o",tmpOutFile.path,
+    	bamIFile.path,
+    	interval
+    	];
      process.runAsync(args, args.length,observeHandler,false);
 	}
 
@@ -152,9 +205,7 @@ nsIFilePicker);
 		document.getElementById('refpath').value = fp.file.path;
 		
 		/* save prefs */
-		var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                .getService(Components.interfaces.nsIPrefService).getDefaultBranch(null);
-        prefs.setCharPref("mozgv.reference.path",fp.file.path); 
+		this.prefBanch.setCharPref("mozgv.reference.path",fp.file.path); 
 		
 		this.repaintSVGBam();
 		}
@@ -202,8 +253,7 @@ nsIFilePicker);
 Mozgv.prototype.onLoad = function() {
   
     this.settingsService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-
-      	var directoryService = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties);
+    var directoryService = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties);
 	var settingsDirectory = directoryService.get("PrefD", Components.interfaces.nsIFile);
 	this.settingsFile = Components.classes["@mozilla.org/file/local;1"].createInstance();
 	this.settingsFile.QueryInterface(Components.interfaces.nsILocalFile);
@@ -214,26 +264,40 @@ Mozgv.prototype.onLoad = function() {
 		/* Read the file */
 	try {
 	    this.settingsService.readUserPrefs(this.settingsFile);
+	    
 	} catch (exception) {
 	    /* Do nothing, the file will be create in the future */
 		console.log(exception);
 	}
-  
-	var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                .getService(Components.interfaces.nsIPrefService).getDefaultBranch(null);
-
-    if( prefs.prefHasUserValue("mozgv.reference.path") )
-    	{
-		var value = prefs.getCharPref("mozgv.reference.path"); 
-		document.getElementById('refpath').value = ""+value;
-		}
-		
+  	
+  	this.prefBanch = this.settingsService.getBranch(null);
+  	if( ! this.prefBanch.prefHasUserValue("mozgv.samtools.path") )
+  		{
+	  	this.prefBanch.setCharPref("mozgv.samtools.path","samtools");
+  		}
+	if( this.prefBanch.prefHasUserValue("mozgv.reference.path") )
+  		{
+	  	document.getElementById('refpath').value = this.prefBanch.getCharPref("mozgv.reference.path");
+  		}
+  	if( this.prefBanch.prefHasUserValue("mozgv.lastRegionStr") )
+  		{
+	  	document.getElementById('interval').value = this.prefBanch.getCharPref("mozgv.lastRegionStr");
+  		}
+	
  	if( "arguments" in window && window.arguments.length >0)
  		{
  		var args = window.arguments[0];
  		if( "bampath" in args )
  			{
  			document.getElementById('bampath').value = args.bam;
+ 			}
+ 		if( "refpath" in args )
+ 			{
+ 			document.getElementById('refpath').value = args.refpath;
+ 			}
+ 		if( "regionStr" in args )
+ 			{
+ 			document.getElementById('interval').value = args.regionStr;
  			}
  		this.repaintSVGBam();
  		}
@@ -246,3 +310,4 @@ Mozgv.prototype.onUnLoad = function()
 	}
 
 var mozgv = new Mozgv();
+
