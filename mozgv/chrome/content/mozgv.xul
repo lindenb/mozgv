@@ -2,11 +2,14 @@
 <?xml-stylesheet href="chrome://global/skin/" type="text/css" ?>
 <window
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	xmlns:xi="http://www.w3.org/2001/XInclude"
 	xmlns:h="http://www.w3.org/1999/xhtml"
 	xmlns:svg="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
-	id="main" width="800" height="600"
+	id="main" width="800" height="500"
+	centerscreen="true"
+	dependent="true"
 	title="Mozilla Genome Viewer"
 	>
   <script src="chrome://mozgv/content/mozgv.js"/>
@@ -44,6 +47,13 @@
 </hbox>
 <hbox flex="1">
 	<checkbox checked="true" label="clip" tooltiptext="Show Clip" flex="1"/>
+	<button label="Flags" type="menu" flex="1">
+          <menupopup>
+          	<menuitem id="f4" type="checkbox" label="F4" checked="false"/>
+          	<menuseparator/>
+          	<menuitem id="f5" type="checkbox" label="F5" checked="false"/>
+          </menupopup>
+    </button>
 </hbox>
 <hbox flex="1">
 <button oncommand="moveView(-1,0.95);" tooltiptext="move 95% left" label="&#x21DA;"/>
@@ -56,10 +66,19 @@
 <button oncommand="moveView(1,0.475);" tooltiptext="move 47% right" label="&#x21D2;"/>
 <button oncommand="moveView(1,0.95);" tooltiptext="move 95% right" label="&#x21DB;"/>
 </hbox>
-<hbox style='overflow: auto;'  flex="10" pack="center">
-	<svg:svg version="1.1" baseProfile="full" width="600" height="600" style="align:center;" id="drawingArea">
-    </svg:svg>
-</hbox>
-</vbox>
 
+<scrollbox style='overflow:auto;'  flex="1" pack="center">
+	<svg:svg version="1.1" baseProfile="full" width="10" height="2000" id="drawingArea">
+		<svg:rect width="100" height="100" style="fill:red;" tooltip="ABCD" xul:tooltip="ABCDE" xul:tooltiptext="adazdd" tooltiptext="9AZ0D9AIZD0">
+			<svg:title>Hello</svg:title>
+		</svg:rect>
+			
+    </svg:svg>
+</scrollbox>
+</vbox>
+<statusbar>
+	<statusbarpanel label="Pierre Lindenbaum" tooltiptext="ref"/>
+	<spacer flex="1"/>
+	<statusbarpanel label="Right panel"/>
+</statusbar>
 </window>

@@ -2,8 +2,71 @@ const Cu = Components.utils;
 const {FileUtils} = Cu.import("resource://gre/modules/FileUtils.jsm", {});
 const {NetUtil} = Cu.import("resource://gre/modules/NetUtil.jsm", {});
 
-function moveView()
+var console= {
+	log : function(str) {
+		  Components.classes['@mozilla.org/consoleservice;1']
+				    .getService(Components.interfaces.nsIConsoleService)
+				    .logStringMessage(str);
+		}
+	};
+
+function parsePosition()
 	{
+	var s =  document.getElementById("interval").value;
+	var colon=s.indexOf(':');
+	if(colon<1)
+		{
+		console.log("bad colon "+s);
+		return null;
+		}
+	var chrom = s.substr(0,colon);
+	var start = 0;
+	var end = 0;
+	s = s.substr(colon+1);
+	var hyphen= s.indexOf('-');
+	if( hyphen == -1 )
+		{
+		start = parseInt(s.replace(/[,]/g, '') );
+		end = start;
+		console.log("start "+start+" "+end);
+		}
+	else
+		{
+		start = parseInt( s.substr(0,hyphen).replace(/[,]/g, '') );
+		end = parseInt( s.substr(hyphen+1).replace(/[,]/g, '') );
+		}
+	
+	if(chrom.length==0 || isNaN(start) || start <0  || isNaN(end) || end < start)
+		{
+		console.log("bad "+ret.chrom+"/"+ start);
+		return null;
+		}
+	if(start+100<end) end=start+100;
+	return new Interval(chrom,start,end);
+	}
+
+function moveView(side,percent)
+	{
+	var interval = parsePosition();
+	if( interval == null) return;
+	var viewLength= interval.distance();
+	console.log("x1"+interval+"/"+interval.distance());
+	var newStart;
+	var shift=Math.round(viewLength*percent);
+	if(shift < 1) shift=1;
+	if(side < 0)
+		{
+		newStart= interval.getStart()-shift;
+		if(newStart < 0) newStart=1;
+		console.log("xx "+newStart+"/"+viewLength);
+		}
+	else
+		{
+		newStart= interval.getStart()+shift;
+		}
+	interval  = new Interval( interval.getContig(), newStart, newStart + (viewLength-1));
+	document.getElementById("interval").value = interval.toString();
+	repaintSVGBam();
 	}
 
 function getSamtoolsPath()
@@ -51,15 +114,17 @@ function repaintSVGBam()
 					  var samfileStr = NetUtil.readInputStreamToString(inputStream, inputStream.available());
 					  var reads=[];
 					  var lines = samfileStr.split(/\n/);
-						for(i in lines) {
+						for(var i in lines) {
 						 if(lines[i].length==0 || lines[i].charAt(0)=='@') continue;
 						 var rec = SamRecord.parse(lines[i]);
 						 reads.push(rec);
 						}
 						samfileStr=null;
 						var viewer = new  SVGBrowser();
+						var svgRoot= document.getElementById("drawingArea");
+						while ( svgRoot.hasChildNodes()) svgRoot.removeChild(svgRoot.firstChild);
 						viewer.build(
-							document.getElementById("drawingArea"),
+							svgRoot,
 							new Interval("chr1",3237,3247),
 							reads,
 							null);
