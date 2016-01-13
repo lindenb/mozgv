@@ -165,6 +165,10 @@ Mozgv.prototype.repaintSVGBam = function()
 						samfileStr=null;
 						var viewer = new  SVGBrowser();
 						viewer.createReadGroupCallBack = that.addMouseClick;
+						/*var parentDiv = document.getElementById("drawingAreaContainer");
+						var parentRect = parentDiv.getBoundingClientRect();
+						console.log(parentRect);*/
+						
 						var svgRoot= document.getElementById("drawingArea");
 						while ( svgRoot.hasChildNodes()) svgRoot.removeChild(svgRoot.firstChild);
 						viewer.build(
@@ -173,6 +177,13 @@ Mozgv.prototype.repaintSVGBam = function()
 							reads,
 							null);
 					  tmpOutFile.remove(false);
+					  
+					  /*console.log("XX");
+					  parentDiv.style["max-width"]=parentRect.width;
+					  parentDiv.style["width"]=parentRect.width;
+					  parentDiv.style["max-height"]=parentRect.height;
+					  parentDiv.style["height"]=parentRect.height;*/
+					  
 					  that.logInfo("Done"); 
 					});
 					

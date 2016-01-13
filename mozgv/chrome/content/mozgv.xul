@@ -75,7 +75,7 @@
 <button oncommand="mozgv.moveView(1,0.95);" tooltiptext="move 95% right" label="&#x21DB;"/>
 </hbox>
 <vbox flex="1">
-	<h:div title="x" style='overflow:auto;max-width: 800px;max-height: 800px;width: 800px;height: 800px;' >
+	<h:div id="drawingAreaContainer" style='overflow:auto;max-width:900px;max-height: 900px;width:800px;height:800px;background-color:white;' >
 		<svg:svg version="1.1" baseProfile="full" width="1" height="1" id="drawingArea">
 		</svg:svg>
 	</h:div>
