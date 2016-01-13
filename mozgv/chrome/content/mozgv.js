@@ -30,10 +30,9 @@ Mozgv.prototype.parseInterval = function()
 
 Mozgv.prototype.moveView = function(side,percent)
 	{
-	var interval = this.parsePosition();
+	var interval = this.parseInterval();
 	if( interval == null) return;
 	var viewLength= interval.distance();
-	console.log("x1"+interval+"/"+interval.distance());
 	var newStart;
 	var shift=Math.round(viewLength*percent);
 	if(shift < 1) shift=1;
@@ -41,7 +40,6 @@ Mozgv.prototype.moveView = function(side,percent)
 		{
 		newStart= interval.getStart()-shift;
 		if(newStart < 0) newStart=1;
-		console.log("xx "+newStart+"/"+viewLength);
 		}
 	else
 		{
@@ -63,24 +61,28 @@ Mozgv.prototype.getSamtoolsPath = function()
 
 Mozgv.prototype.log = function(color,message)
 	{
+	message=""+message;
 	var pane=document.getElementById("messages.panel");
 	pane.setAttribute("style","color:"+color+";");
-	pane.label=""+message;
-	pane.setAttribute("tooltiptext",pane.label);
+	pane.label=((message.length)>50?message.substr(0,50)+"...":message);
+	pane.setAttribute("tooltiptext",message);
 	}
 
 Mozgv.prototype.logError = function(message)
 	{
+	console.log("[ERROR]"+message);
 	this.log("red",message);
 	}
 
 Mozgv.prototype.logWarning = function(message)
 	{
+	console.log("[WARN]"+message);
 	this.log("orange",message);
 	}
 
 Mozgv.prototype.logInfo = function(message)
 	{
+	console.log("[INFO]"+message);
 	this.log("green",message);
 	}
 
@@ -118,6 +120,7 @@ Mozgv.prototype.repaintSVGBam = function()
 		this.logError("file "+ bamIFile.path +" doesn't exists");
         return;
 		}
+	this.prefBanch.setCharPref("mozgv.bam.path",bamIFile.path);
 		
 	var interval = this.parseInterval();
 	if( interval == null) {
@@ -250,7 +253,10 @@ nsIFilePicker);
 	}
 
 
-Mozgv.prototype.onLoad = function() {
+Mozgv.prototype.onLoad = function()
+	{
+	window.width  = screen.width-150;
+	window.height = screen.height-150;
   
     this.settingsService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
     var directoryService = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties);
@@ -283,7 +289,11 @@ Mozgv.prototype.onLoad = function() {
   		{
 	  	document.getElementById('interval').value = this.prefBanch.getCharPref("mozgv.lastRegionStr");
   		}
-	
+	if( this.prefBanch.prefHasUserValue("mozgv.bam.path") )
+  		{
+	  	document.getElementById('bampath').value = this.prefBanch.getCharPref("mozgv.bam.path");
+  		}
+	  	
  	if( "arguments" in window && window.arguments.length >0)
  		{
  		var args = window.arguments[0];
@@ -299,8 +309,14 @@ Mozgv.prototype.onLoad = function() {
  			{
  			document.getElementById('interval').value = args.regionStr;
  			}
- 		this.repaintSVGBam();
+ 		
  		}
+ 	else
+ 		{
+ 		window.screenX=((screen.width-100)/2.0);
+		window.screenY=((screen.height-100)/2.0);
+ 		}
+ 	this.repaintSVGBam();
 	}
 
 

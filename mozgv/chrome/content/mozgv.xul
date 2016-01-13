@@ -23,14 +23,18 @@
 <script src="chrome://mozgv/content/bamjs/SVG.js"/>
 <script src="chrome://mozgv/content/bamjs/XLINK.js"/>
 
+<keyset>
+  <key id="accel-open-bam" modifiers="control" key="O"/>
+  <key id="accel-save-svg" modifiers="control" key="S"/>
+</keyset>
   
 <!-- top menu bar -->  
 <toolbox>
   <menubar id="sample-menubar">
-    <menu id="file-menu" label="File">
+    <menu id="file-menu" label="File" >
       <menupopup>
-        <menuitem label="Open BAM..." oncommand="mozgv.doMenuOpen();"/>
-        <menuitem label="Save SVG..." oncommand="mozgv.doMenuSaveSVG();"/>
+        <menuitem label="Open BAM..." oncommand="mozgv.doMenuOpen();" key="accel-open-bam"/>
+        <menuitem label="Save SVG..." oncommand="mozgv.doMenuSaveSVG();" key="accel-save-svg"/>
         <menuseparator/>
         <menuitem label="Close" oncommand="window.close();"/>
       </menupopup>
@@ -39,17 +43,17 @@
 </toolbox>
 
 <vbox>
-<hbox flex="1">
+<hbox flex="1" align="center">
 	<label control="bampath" value="BAM:" tooltiptext="bam" flex="1"/>
 	<textbox id="bampath" flex="5"  tooltiptext="Bam path" emptytext="path"/>
 	<button tooltiptext="set path" label="BAM..." oncommand="mozgv.selectBamFile();"/>
 </hbox>
-<hbox flex="1">
+<hbox flex="1" align="center">
 	<label control="refpath" value="REF: " tooltiptext="ref" flex="1"/>
 	<textbox id="refpath" flex="5"  tooltiptext="REF path" emptytext="path"/>
 	<button tooltiptext="set path" label="REF..." oncommand="mozgv.selectReferenceFile();" />
 </hbox>
-<hbox flex="1">
+<hbox flex="1" align="center">
 	<checkbox checked="true" label="clip" tooltiptext="Show Clip" flex="1"/>
 	<button label="Flags" type="menu" flex="1">
           <menupopup>
@@ -59,7 +63,7 @@
           </menupopup>
     </button>
 </hbox>
-<hbox flex="1">
+<hbox flex="1" align="center">
 <button oncommand="mozgv.moveView(-1,0.95);" tooltiptext="move 95% left" label="&#x21DA;"/>
 <button oncommand="mozgv.moveView(-1,0.475);" tooltiptext="move 47% left" label="&#x21D0;"/>
 <button oncommand="mozgv.moveView(-1,0.1);" tooltiptext="move 10% left" label="&#x2190;"/>
@@ -70,17 +74,15 @@
 <button oncommand="mozgv.moveView(1,0.475);" tooltiptext="move 47% right" label="&#x21D2;"/>
 <button oncommand="mozgv.moveView(1,0.95);" tooltiptext="move 95% right" label="&#x21DB;"/>
 </hbox>
-
-<scrollbox style='overflow:auto;'  flex="1" pack="center">
-	<svg:svg version="1.1" baseProfile="full" width="10" height="2000" id="drawingArea">
-		<svg:rect width="100" height="100" style="fill:red;" tooltip="ABCD" xul:tooltip="ABCDE" xul:tooltiptext="adazdd" tooltiptext="9AZ0D9AIZD0">
-			<svg:title>Hello</svg:title>
-		</svg:rect>
-    </svg:svg>
-</scrollbox>
+<vbox flex="1">
+	<h:div title="x" style='overflow:auto;max-width: 800px;max-height: 800px;width: 800px;height: 800px;' >
+		<svg:svg version="1.1" baseProfile="full" width="1" height="1" id="drawingArea">
+		</svg:svg>
+	</h:div>
+</vbox>
 </vbox>
 <statusbar>
-	<statusbarpanel label="Pierre Lindenbaum" tooltiptext="ref"/>
+	<statusbarpanel label="Pierre Lindenbaum PhD @yokofakun" tooltiptext="ref"/>
 	<spacer flex="1"/>
 	<statusbarpanel id="messages.panel" label=""/>
 </statusbar>
